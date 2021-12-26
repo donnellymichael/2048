@@ -16,19 +16,19 @@ YMARGIN = int((GAME_HEIGHT +50 - (TILESIZE * BOARD_HEIGHT + (BOARD_HEIGHT - 1)))
 def main():
     global screen, font
 
-    score = 0
-
     font = pygame.font.SysFont("Clear Sans Regular", 60)
     screen = pygame.display.set_mode([GAME_WIDTH, GAME_HEIGHT])
     pygame.display.set_caption('2048')
+
     gameBoard = getStartingBoard()
+    score = 0
 
     scoreText = font.render("Score:", 1, TEXTCOLOUR)
-    
     
     running = True
     while running:
 
+        prevGameBoard = gameBoard
         drawBoard(gameBoard)
         scoreVal = font.render(str(score), 1, TEXTCOLOUR)
         screen.blit(scoreText, (100, 20))
@@ -38,36 +38,69 @@ def main():
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-
+                print('KEY PRESSED')
+                
                 if event.key == pygame.K_UP:
                     print("UP")
                     gameBoard = [list(col) for col in zip(*gameBoard[::-1])]
-                    score += moveTilesRight(gameBoard, 4)
-                    for i in range(0, 3, 1):
-                        gameBoard = list(zip(*gameBoard[::-1]))
-                    gameBoard = [list(col) for col in gameBoard]
+                    score += moveTilesRight(gameBoard, BOARD_HEIGHT)
+                    gameBoard = [list(col) for col in list(reversed(list(zip(*gameBoard))))]
 
                 if event.key == pygame.K_DOWN:
                     print("DOWN")
                     gameBoard = [list(col) for col in zip(*gameBoard[::-1])]
-                    score += moveTilesLeft(gameBoard, 4)
-                    for i in range(0, 3, 1):
-                        gameBoard = list(zip(*gameBoard[::-1]))
-                    gameBoard = [list(col) for col in gameBoard]
+                    score += moveTilesLeft(gameBoard, BOARD_HEIGHT)
+                    gameBoard = [list(col) for col in list(reversed(list(zip(*gameBoard))))]
 
                 if event.key == pygame.K_LEFT:
                     print("LEFT")
-                    score += moveTilesLeft(gameBoard, 4)
+                    gameBoard = [list(col) for col in gameBoard]
+                    score += moveTilesLeft(gameBoard, BOARD_WIDTH)
 
                 if event.key == pygame.K_RIGHT:
                     print("RIGHT")
-                    score += moveTilesRight(gameBoard, 4)
+                    gameBoard = [list(col) for col in gameBoard]
+                    score += moveTilesRight(gameBoard, BOARD_WIDTH)
 
-                print(score)
-                addRandomTile(gameBoard)
+                if (isValidMove(prevGameBoard, gameBoard)):
+                    addRandomTile(gameBoard)
+                else:
+                    print('Move invalid')
 
+                if (boardFull(gameBoard)) and checkGameOver(gameBoard):
+                    print('game over')
+   
             if event.type == pygame.QUIT:
                 running = False
+
+def boardFull(game):
+    for row in range(len(game)):
+        for col in range(len(game[0])):
+            if game[row][col] == 0:
+                return False
+    else: return True
+
+def checkGameOver(game):
+    for row in range(len(game)):
+        for col in range(1, 3, 1):
+            if game[row][col] == game[row][col-1]:
+                return False
+
+    game = [list(col) for col in zip(*game[::-1])]
+    for row in range(len(game)):
+        for col in range(1, 3, 1):
+            if game[row][col] == game[row][col-1]:
+                return False
+    game = [list(col) for col in list(reversed(list(zip(*game))))]
+    
+    return True
+            
+            
+def isValidMove(prevBoard, currBoard):
+    if currBoard == prevBoard:
+        return False
+    else:
+        return True
 
 def moveTilesLeft(board, n):
     points = 0
