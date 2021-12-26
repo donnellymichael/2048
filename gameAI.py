@@ -34,6 +34,8 @@ def main():
 
                 if (game.isValidMove(prevGameBoard)):
                     game.addRandomTile()
+                else:
+                    print('Move invalid')
 
                 if (game.boardFull()) and game.checkGameOver():
                     print('game over')
@@ -46,6 +48,7 @@ class game2048:
         self.font = pygame.font.SysFont("Clear Sans Regular", 60)
         self.screen = pygame.display.set_mode([GAME_WIDTH, GAME_HEIGHT])
         pygame.display.set_caption('2048')
+
         self.gameBoard = self.getStartingBoard()
         self.score = 0
         self.scoreText = self.font.render("Score:", 1, TEXTCOLOUR)
