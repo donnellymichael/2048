@@ -1,5 +1,6 @@
 import pygame
 import random
+import numpy as np
 
 GAME_WIDTH = 600
 GAME_HEIGHT = 700
@@ -10,71 +11,82 @@ TILECOLOUR = 102, 102, 102
 TEXTCOLOUR = 238, 228, 218
 BORDERCOLOUR = 74, 74, 74
 
+# Output values for NN
+ACTION_LEFT = [1, 0, 0, 0]
+ACTION_UP = [0, 1, 0, 0]
+ACTION_RIGHT = [0, 0, 1, 0]
+ACTION_DOWN = [0, 0, 0, 1]
+
 XMARGIN = int((GAME_WIDTH - (TILESIZE * BOARD_WIDTH + (BOARD_WIDTH - 1))) / 2)
 YMARGIN = int((GAME_HEIGHT +50 - (TILESIZE * BOARD_HEIGHT + (BOARD_HEIGHT - 1))) / 2)
 
 def main():
-    game = game2048()
+    game = game2048AI()
     
-    running = True
-    while running:
-
-        prevGameBoard = game.gameBoard
+    game.running = True
+    while game.running:
         game.drawBoard()
         scoreVal = game.font.render(str(game.score), 1, TEXTCOLOUR)
         game.screen.blit(game.scoreText, (100, 20))
         game.screen.blit(scoreVal, (150, 70))
-        pygame.display.update()
+        
+        prevGameBoard = game.gameBoard
 
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                print('KEY PRESSED')
-                
-                game.makeMove(event)
+        game.makeMove(game.gameBoard)
 
-                if (game.isValidMove(prevGameBoard)):
-                    game.addRandomTile()
-                else:
-                    print('Move invalid')
+        if (game.isValidMove(prevGameBoard)):
+            game.addRandomTile()
 
-                if (game.boardFull()) and game.checkGameOver():
-                    print('game over')
+        if (game.boardFull()) and game.checkGameOver():
+            print('game over')
    
-            if event.type == pygame.QUIT:
-                running = False
-
-class game2048:
+class game2048AI:
     def __init__(self, width=GAME_WIDTH, height=GAME_HEIGHT):
+        pygame.init()
         self.font = pygame.font.SysFont("Clear Sans Regular", 60)
         self.screen = pygame.display.set_mode([GAME_WIDTH, GAME_HEIGHT])
         pygame.display.set_caption('2048')
+        self.scoreText = self.font.render("Score:", 1, TEXTCOLOUR)
+        self.reset()
 
+    def reset(self):
         self.gameBoard = self.getStartingBoard()
         self.score = 0
-        self.scoreText = self.font.render("Score:", 1, TEXTCOLOUR)
+        self.frameIteration = 0
 
-    def makeMove(self, event):
-        if event.key == pygame.K_UP:
-            print("UP")
+    def makeMove(self, action):
+        pygame.display.update()
+        prevGameBoard = self.gameBoard
+        
+        # [1 0 0 0] = Left
+        # [0 1 0 0] = Up
+        # [0 0 1 0] = Right
+        # [0 0 0 1] = Down
+
+        if np.array_equal(action, ACTION_UP):
+            #print("UP")
             self.gameBoard = [list(col) for col in zip(*self.gameBoard[::-1])]
             self.score += self.moveTilesRight(BOARD_HEIGHT)
-            self.gameBoard = [list(col) for col in list(reversed(list(zip(*self.gameBoard))))]
+            for i in range(0, 3, 1):
+                self.gameBoard = [list(col) for col in zip(*self.gameBoard[::-1])]
 
-        if event.key == pygame.K_DOWN:
-            print("DOWN")
+        if np.array_equal(action, ACTION_DOWN):
+            #print("DOWN")
             self.gameBoard = [list(col) for col in zip(*self.gameBoard[::-1])]
             self.score += self.moveTilesLeft(BOARD_HEIGHT)
-            self.gameBoard = [list(col) for col in list(reversed(list(zip(*self.gameBoard))))]
+            for i in range(0, 3, 1):
+                self.gameBoard = [list(col) for col in zip(*self.gameBoard[::-1])]
 
-        if event.key == pygame.K_LEFT:
-            print("LEFT")
+        if np.array_equal(action, ACTION_LEFT):
+            #print("LEFT")
             self.gameBoard = [list(col) for col in self.gameBoard]
             self.score += self.moveTilesLeft(BOARD_WIDTH)
 
-        if event.key == pygame.K_RIGHT:
-            print("RIGHT")
+        if np.array_equal(action, ACTION_RIGHT):
+            #print("RIGHT")
             self.gameBoard = [list(col) for col in self.gameBoard]
             self.score += self.moveTilesRight(BOARD_WIDTH)
+
 
     def boardFull(self):
         for row in range(len(self.gameBoard)):

@@ -32,11 +32,12 @@ def main():
                 
                 game.makeMove(event)
 
-                if (game.isValidMove(prevGameBoard)):
+                if (game.isValidMove(prevGameBoard) and not game.boardFull()):
                     game.addRandomTile()
 
                 if (game.boardFull()) and game.checkGameOver():
                     print('game over')
+                    #game.reset()
    
             if event.type == pygame.QUIT:
                 running = False
@@ -49,19 +50,26 @@ class game2048:
         self.gameBoard = self.getStartingBoard()
         self.score = 0
         self.scoreText = self.font.render("Score:", 1, TEXTCOLOUR)
+    
+    def reset(self):
+        self.gameBoard = self.getStartingBoard()
+        self.score = 0
+        self.frameIteration = 0
 
     def makeMove(self, event):
         if event.key == pygame.K_UP:
             print("UP")
             self.gameBoard = [list(col) for col in zip(*self.gameBoard[::-1])]
             self.score += self.moveTilesRight(BOARD_HEIGHT)
-            self.gameBoard = [list(col) for col in list(reversed(list(zip(*self.gameBoard))))]
+            for i in range(0, 3, 1):
+                self.gameBoard = [list(col) for col in zip(*self.gameBoard[::-1])]
 
         if event.key == pygame.K_DOWN:
             print("DOWN")
             self.gameBoard = [list(col) for col in zip(*self.gameBoard[::-1])]
             self.score += self.moveTilesLeft(BOARD_HEIGHT)
-            self.gameBoard = [list(col) for col in list(reversed(list(zip(*self.gameBoard))))]
+            for i in range(0, 3, 1):
+                self.gameBoard = [list(col) for col in zip(*self.gameBoard[::-1])]
 
         if event.key == pygame.K_LEFT:
             print("LEFT")
